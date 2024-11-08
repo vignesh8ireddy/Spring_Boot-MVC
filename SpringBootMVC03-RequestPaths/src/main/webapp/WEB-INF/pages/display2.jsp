@@ -1,0 +1,1 @@
+<h1 style="color=red;text-align:center">Display Page 2</h1>
