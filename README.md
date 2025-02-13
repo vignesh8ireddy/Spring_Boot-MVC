@@ -1,7 +1,71 @@
-# Spring Boot MVC
+## Spring Boot MVC
 
-1. Spring Boot MVC Application Setup
-    * Maven Dependencies(Spring Web, Spring DevTools Api, Apache JSTL API)
+* MVC is an architecture to develop an application in layers and each layer is developed using an appropriate design patterns
+* MVC: Model - View - Controller
+  * Model - Business Logics (Service classes), Persistence Logics (DAO classes)
+  * View - UI logics (React, Angular)
+  * Controller - Control, Monitoring and Tracing logics
+
+* In MVC and Monolithic architectures, all services will be packaged into single unit project
+* In SOAP and Microservices, different services will be developed as different unit projects
+* FrontController
+  * It is a special servlet component(and handler/controller class) of a web application that acts as entry and exit point for all the request and responses.
+  * FrontController traps all the requests and multiple requests, applies common system services, performs navigation management,
+    Data management, View management and lastly sends the response to the browser (client)
+    * system services : security, logging, auditing,...
+    * navigation management : delegating the uri/url requests to appropriate handler components
+    * data/model management : passing data(inputs by client) coming along with the requests to appropriate handler components
+      passing data(results by service classes) from handler class to the appropriate view components by keeping it in
+      request scope or session scope
+    * view management : sending view components as responses to the client
+  * Instead of developing Controller class as normal servlet component or servlet filet component, it is recommended to
+    develop it as FrontController Servlet (a servlet component based on FrontController Design Patterns)
+  * So, entire flow of the application from request to response will be under the control and monitoring of FrontController
+  * We need to configure FrontController servlet component having extension match url pattern (like *.do for trapping
+    multiple requests), directory match url pattern (/x/y/* for multiple requests) or with "/" (for trapping all requests)
+
+* DispatcherServlet of Spring MVC
+  * It is a Spring MVC supplied servlet component given as FrontController Servlet.
+  * or.springframework.web.servlet.DispatcherServlet (found in spring-web-<version>.jar)
+  * So, FrontController servlet component is predefined and given with navigation, view, data managements by the Spring Web starter.
+  * In Spring MVC applications, we need to explicitly configure and register FrontController with Servlet Container having directory match url pattern (like x/y/*) or
+    extension match url pattern (like *.do) or global url pattern ("/").
+  * But, in Spring Boot MVC applications, it is automatically registered with Servlet Container having url pattern "/" to trap all
+    the requests and load on startup enabled.
+    * Three ways to configure a Servlet Component with Servlet Container:
+      1. Declarative Approach (using web.xml configurations)
+      2. Annotation Approach (using @WebServlet)
+      3. Programmatic or DynamicServlet Registration Approach (using sc.addServlet(,))
+* Java Web Application = FrontController + MVC Architecture
+
+* Generally, in the implementation of MVC architecture based web application we can see the following design patterns:
+    * DAO, Server/BusinessDelegate and Factory design patterns in Model layer
+    * FrontController design patterns in Controller layer
+    * View Helper, CompositeView design patterns in View layer
+
+* The following operations takes place when a Spring Boot MVC application is deployed over application server
+  1. Because of the "load-on-startup" of DispatcherServlet, the Servlet Container creates DispatcherServlet class object
+     either on the deployment of the application (for hot deployment) or during the server startup (for cold deployment)
+     * Hot Deployment: Deploying the application when server is running
+     * Cold Deployment: Stopping the server and deploying the application and starting again.
+  2. init() method of DispatcherSerlvet executes and creates IOC Container of type WebApplicationContext
+  3. IOC container performs pre-instantiation of singleton scope beans (like controller,service, repository classes, DataSource,
+      Handler Mappings, ViewResolver,...), performs Dependency Injection and keeps them in internal cache of it.
+  * In Spring Boot MVC applications, DispatcherServlet is taken care by Servlet Container, View Components (jsp files) are 
+    taken care by Jasper Container and Spring Beans are taken care by IOC Container created by Dispatcher Servlet.
+* In Standalone applications, we create IOC Container manually in main() method, but web applications doesn't have any main() method,
+  IOC container is automatically created by init() method of DispatcherServlet given Spring Web starter
+
+* Five main components of a Spring Boot MVC application
+  1. FrontController (DispatcherServlet)
+  2. Handler/Controller class is a spring bean (@Controller) and a controller that either can process the received request (from FrontController) directly or can
+      take the support of service, dao classes for the response.
+  3. HandlerMapping: This is a helper component which maps the requests trapped by the FrontController to the appropriate Handler class
+  4. View Component: .jsp files or any other physical UI components stored in webapps/WEB-INF/ directory
+  5. View Resolver: A helper component which resolves the logical view name to the physical View Components
+
+* Spring Boot MVC Application Setup
+    * Maven Dependencies(Spring Web, Spring DevTools API, Apache JSTL API)
     * application.properties file
         * spring.mvc.view.prefix
         * spring.mvc.view.suffix
@@ -10,28 +74,32 @@
     * controller layer (handlers i.e @Controller)
     * webapps/WEB-INF/pages/
         * .jsp/.html files
-2. Components and Working of a Spring MVC application.<br/>
-    i. FrontController (also called DispatcherServlet)<br/>
-    ii. HandlerMapping<br/>
-    iii. Controller classes (handler classes and handler methods returning logical view name)<br/>
-    iv. ViewResolver (returning details of physical view components) (configure it in application.properties)<br/>
-    v. View Components(physical view components stored in webapps/WEB-INF/ directory)<br/>
-    
-    [@Controller, @RequestMapping, @GetMapping, @PostMapping,..., request path, global X local request mappings, logical view name, physical view components]
 
-    ### Working of a Spring Boot MVC application
-    I. The Spring MVC application is deployed in the web server <br/>
-    II. The DispatcherServlet would be pre-instantiated and initialized because the load-on-startup is enabled for it. As a part of it's initialization the IOC container will be created(of type ApplicationContext) and performs pre-instantion of singleton scope spring beans like HandlerMappings, Handler Classes, service layer classes, DAO layer classes, View Resolvers,.. and completes the necessary dependancy injections and keeps all these spring beans in the internal cache of IOC container.<br/>
-    III. When request is sent to MVC application (through browser/Postman), DispatcherServlet (FrontContoller) traps the request, applies the common system services and hand-overs the trapped request to the Handler Mapping component.<br/>
-    IV. Handler Mapping component searches in all the @Controller classes (handlers) for the corresponding handler method whose request path matches with the path of currently trapped request (using reflection api) and returns the found handler controller's bean id and handler methods' signature to the Dispatcher Servlet.<br/>
-    V. Dispatcher Servlet submits them to the IOC container(which is managing the Dispatcher Servlet), gets the instance of the handler class and calls the signature based handler method on it.<br/>
-    VI. The handler method either directly process the request or delegates the request to service layer or DAO layer classes for processing and returns the Logical View Name to the Dispatcher Servlet.<br/>
-    VII. Dispatcher Servlet now gives the Logical View Name to the View Resolver which resolves and identifies the physical view component and returns the View component's details.<br/>
-    VIII. Finally, Dispatcher Servlet communicates with the physical View Component where final results (response) are gathered and formatted and sends back the formatted results to the browser as a response.<br/>
-3. Data Rendering
-* Shared memory has request scope, so for every new request new shared memory is created.
-* Map<String,Object> map or Model class is used for creating a shared memory.
-* Using Map is recommended to reduce spring api usage.
+* Working of Spring Boot MVC application 
+  1. The Spring MVC application is deployed in the web server
+  2. The DispatcherServlet would be pre-instantiated and initialized because the load-on-startup is enabled for it.
+     As a part of its initialization the IOC container will be created(of type ApplicationContext) and performs 
+     pre-instantiation of singleton scope spring beans like HandlerMappings, Handler Classes, service layer classes, 
+     DAO layer classes, View Resolvers,.. and completes the necessary dependency injections and keeps all these spring 
+     beans in the internal cache of IOC container.
+  3. When request is sent to MVC application (through browser/Postman), DispatcherServlet (FrontController) traps the 
+     request, applies the common system services and hand-overs the trapped request to the Handler Mapping component.
+  4. Handler Mapping component searches in all the @Controller classes (handlers) for the corresponding handler method 
+     whose request path matches with the path of currently trapped request (using reflection api) and returns the found 
+     handler controller's bean id and handler methods' signature to the Dispatcher Servlet.
+  5. Dispatcher Servlet submits them to the IOC container, gets the instance of the handler class and calls the 
+     signature based handler method on it.
+  6. The handler method either directly process the request or delegates the request to service layer or DAO layer 
+     classes for processing and returns the Logical View Name to the Dispatcher Servlet.
+  7. Dispatcher Servlet now gives the Logical View Name to the View Resolver which resolves and identifies the physical 
+     view component and returns the View component's details.
+  8. Finally, Dispatcher Servlet communicates with the physical View Component where final results (response) are 
+     gathered and formatted and sends back the formatted results to the browser as a response.
+* Data Rendering
+  * Shared memory has request scope, so for every new request new shared memory is created.
+  * Map<String,Object> map or Model class is used for creating a shared memory.
+  * Using Map is recommended to reduce spring api usage.
+  * A Request Path must start with "/".
 ```java
 //shared memory in handler method
 @RequestMapping("/request_path")
@@ -214,4 +282,6 @@ public class HandlerClass2{
         * use param implicit object in jsp or jstl like header and many others
         * send arguments in the url: http://localhost:8081/@@@@@/request_path?parameter1=xx&parameter2=xxx&parameter3=xxx
 
-        
+* Useful Annotations of Spring Boot MVC
+    * Stereotype annotations (@Controller, @Service, @Repository,...)
+    * @RequestMapping, @GetMapping, @PostMapping for specifying request path, global X local request mappings.
