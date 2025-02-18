@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/SpringBootMVC01-WelcomeApp/pom.xml" />
+        <option value="$PROJECT_DIR$/SpringBootMVC02-SeasonApp/pom.xml" />
+        <option value="$PROJECT_DIR$/SpringMVC-TEST/pom.xml" />
+        <option value="$PROJECT_DIR$/SpringBootMVC03-RequestPaths/pom.xml" />
+        <option value="$PROJECT_DIR$/SpringTempApp/pom.xml" />
+      </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/SpringBootMVC02-SeasonApp/pom.xml" />
+      </set>
+    </option>
+  </component>
   <component name="ProjectRootManager">
     <output url="file://$PROJECT_DIR$/out" />
   </component>

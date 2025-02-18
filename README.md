@@ -36,6 +36,7 @@
       1. Declarative Approach (using web.xml configurations)
       2. Annotation Approach (using @WebServlet)
       3. Programmatic or DynamicServlet Registration Approach (using sc.addServlet(,))
+
 * Java Web Application = FrontController + MVC Architecture
 
 * Generally, in the implementation of MVC architecture based web application we can see the following design patterns:
@@ -60,20 +61,36 @@
   1. FrontController (DispatcherServlet)
   2. Handler/Controller class is a spring bean (@Controller) and a controller that either can process the received request (from FrontController) directly or can
       take the support of service, dao classes for the response.
-  3. HandlerMapping: This is a helper component which maps the requests trapped by the FrontController to the appropriate Handler class
+  3. HandlerMapping: This is a helper component which maps the requests trapped by the FrontController to the 
+     appropriate Handler class. (HandlerMapping component uses reflection api internally)
+     * HandlerMapping classes are ready-made and given by SpringBoot MVC
+     * This component (DefaultAnnotationHandlerMapping class given by spring boot) implements org.springframework.web.servlet.HandlerMapping(I) directly or indirectly.
+     * So, you don't have to develop custom HandlerMapping classes
   4. View Component: .jsp files or any other physical UI components stored in webapps/WEB-INF/ directory
   5. View Resolver: A helper component which resolves the logical view name to the physical View Components
+     * View Resolver doesn't execute physical View Components, it just identifies the name and location of physical view
+       components and gives those details to DispatcherServlet
+     * No need of developing user-defined View Resolver classes, Spring Boot gives ready-made ViewResolver (by default, InternalResourceViewResolver)
+       implementing org.springframework.web.servlet.ViewResolver(I)
+     * Use application.properties files to give inputs to InternalResourceViewResolver
+     * InternalResourceViewResolver is not designed to resolve .html view components, it is good with private area servlet and .jsp files
+
+* HandlerMapping class and ViewResolver class become spring beans through autoconfiguration
 
 * Spring Boot MVC Application Setup
     * Maven Dependencies(Spring Web, Spring DevTools API, Apache JSTL API)
     * application.properties file
-        * spring.mvc.view.prefix
-        * spring.mvc.view.suffix
-        * server.port
-        * server.servlet.context-path
+      * spring.mvc.view.prefix
+      * spring.mvc.view.suffix
+      * server.port
+      * server.servlet.context-path
     * controller layer (handlers i.e @Controller)
-    * webapps/WEB-INF/pages/
-        * .jsp/.html files
+    * webapp/WEB-INF/pages/ for .html, .jsp, .js or .jsp files
+    * webapp/WEB-INF/classes/ for .java and .class files
+    * webapp/WEB-INF/lib/ for .jar files
+    * webapp/WEB-INF/config/ for .xml files
+* WEB-INF and its sub folders are private area and everything outside WEB-INF is public
+* Everything in src folder (src/main/java, src/main/test,...) is kept in WEB-INF folder internally
 
 * Working of Spring Boot MVC application 
   1. The Spring MVC application is deployed in the web server
@@ -95,6 +112,17 @@
      view component and returns the View component's details.
   8. Finally, Dispatcher Servlet communicates with the physical View Component where final results (response) are 
      gathered and formatted and sends back the formatted results to the browser as a response.
+
+* To use embedded tomcat server, just configure the port number as server.port = 4041 (4041 is by default) in application.properties,
+  if didn't work, add the following dependency from mvnrepository.com
+    ```java
+    <!-- https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-jasper -->
+    <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-jasper</artifactId>
+        <version>11.0.1</version>
+    </dependency>
+    ```
 * Data Rendering
   * Shared memory has request scope, so for every new request new shared memory is created.
   * Map<String,Object> map or Model class is used for creating a shared memory.
